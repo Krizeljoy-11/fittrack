@@ -6,12 +6,17 @@ import 'core/theme/app_theme.dart';
 import 'core/utils/firebase_bootstrap.dart';
 import 'providers/auth_provider.dart';
 import 'providers/profile_provider.dart';
+import 'providers/routine_provider.dart';
+import 'repositories/exercise_repository.dart';
+import 'repositories/routine_repository.dart';
 import 'repositories/user_repository.dart';
 import 'screens/auth/auth_gate.dart';
 import 'screens/auth/forgot_password_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/profile/edit_profile_screen.dart';
+import 'screens/routines/routine_detail_screen.dart';
+import 'screens/routines/routine_edit_screen.dart';
 import 'screens/shell/main_shell.dart';
 import 'services/auth_service.dart';
 import 'services/notification_service.dart';
@@ -43,6 +48,27 @@ final Map<String, WidgetBuilder> _routes = <String, WidgetBuilder>{
 };
 
 Route<dynamic> _onGenerateRoute(RouteSettings settings) {
+  // Screens that take a single string argument are built here so tests can
+  // also construct them directly with the same constructor.
+  if (settings.name == AppRoutes.routineDetail) {
+    final Object? arguments = settings.arguments;
+    return MaterialPageRoute<void>(
+      settings: settings,
+      builder: (_) => RoutineDetailScreen(
+        routineId: arguments is String ? arguments : '',
+      ),
+    );
+  }
+  if (settings.name == AppRoutes.routineEdit) {
+    final Object? arguments = settings.arguments;
+    return MaterialPageRoute<void>(
+      settings: settings,
+      builder: (_) => RoutineEditScreen(
+        routineId: arguments is String ? arguments : null,
+      ),
+    );
+  }
+
   final WidgetBuilder? builder = _routes[settings.name];
   if (builder == null) {
     debugPrint('AppRouter: no route for "${settings.name}", using AuthGate.');
@@ -57,17 +83,21 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
 ///
 /// Owns the provider wiring so both `main()` and widget tests can pump it
 /// without extra setup. [authService] exists so widget tests can drive the
-/// auth flow with a fake instead of a real Firebase project, and
-/// [profileRepository] lets them serve `users/{uid}` the same way.
+/// auth flow with a fake instead of a real Firebase project, and the
+/// repository parameters let them serve the same documents the same way.
 class MyApp extends StatelessWidget {
   const MyApp({
     super.key,
     this.authService,
     this.profileRepository,
+    this.routineRepository,
+    this.exerciseRepository,
   });
 
   final AuthService? authService;
   final UserRepository? profileRepository;
+  final RoutineRepository? routineRepository;
+  final ExerciseRepository? exerciseRepository;
 
   @override
   Widget build(BuildContext context) {
@@ -78,6 +108,12 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<ProfileProvider>(
           create: (_) => ProfileProvider(repository: profileRepository),
+        ),
+        ChangeNotifierProvider<RoutineProvider>(
+          create: (_) => RoutineProvider(
+            repository: routineRepository,
+            exerciseRepository: exerciseRepository,
+          ),
         ),
         Provider<NotificationService>(create: (_) => NotificationService()),
       ],
