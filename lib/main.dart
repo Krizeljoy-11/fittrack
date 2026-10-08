@@ -5,10 +5,13 @@ import 'core/constants/app_routes.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/firebase_bootstrap.dart';
 import 'providers/auth_provider.dart';
+import 'providers/profile_provider.dart';
+import 'repositories/user_repository.dart';
 import 'screens/auth/auth_gate.dart';
 import 'screens/auth/forgot_password_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
+import 'screens/profile/edit_profile_screen.dart';
 import 'screens/shell/main_shell.dart';
 import 'services/auth_service.dart';
 import 'services/notification_service.dart';
@@ -36,6 +39,7 @@ final Map<String, WidgetBuilder> _routes = <String, WidgetBuilder>{
   AppRoutes.schedule: (_) => const MainShell(initialIndex: 2),
   AppRoutes.progress: (_) => const MainShell(initialIndex: 3),
   AppRoutes.profile: (_) => const MainShell(initialIndex: 4),
+  AppRoutes.editProfile: (_) => const EditProfileScreen(),
 };
 
 Route<dynamic> _onGenerateRoute(RouteSettings settings) {
@@ -53,11 +57,17 @@ Route<dynamic> _onGenerateRoute(RouteSettings settings) {
 ///
 /// Owns the provider wiring so both `main()` and widget tests can pump it
 /// without extra setup. [authService] exists so widget tests can drive the
-/// auth flow with a fake instead of a real Firebase project.
+/// auth flow with a fake instead of a real Firebase project, and
+/// [profileRepository] lets them serve `users/{uid}` the same way.
 class MyApp extends StatelessWidget {
-  const MyApp({super.key, this.authService});
+  const MyApp({
+    super.key,
+    this.authService,
+    this.profileRepository,
+  });
 
   final AuthService? authService;
+  final UserRepository? profileRepository;
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +75,9 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider<AuthProvider>(
           create: (_) => AuthProvider(service: authService),
+        ),
+        ChangeNotifierProvider<ProfileProvider>(
+          create: (_) => ProfileProvider(repository: profileRepository),
         ),
         Provider<NotificationService>(create: (_) => NotificationService()),
       ],

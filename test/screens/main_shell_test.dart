@@ -66,7 +66,13 @@ void main() {
     await tester.tap(find.text('Profile'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(OutlinedButton, 'Sign out'));
+    // The profile screen now holds more content, so make sure the action is
+    // scrolled into view before tapping it.
+    final Finder signOut = find.widgetWithText(OutlinedButton, 'Sign out');
+    await tester.ensureVisible(signOut);
+    await tester.pumpAndSettle();
+
+    await tester.tap(signOut);
     await tester.pumpAndSettle();
 
     expect(find.text('Sign out?'), findsOneWidget);
@@ -77,7 +83,9 @@ void main() {
     expect(find.byType(NavigationBar), findsOneWidget);
     expect(fake.signOutCalls, 0);
 
-    await tester.tap(find.widgetWithText(OutlinedButton, 'Sign out'));
+    await tester.ensureVisible(signOut);
+    await tester.pumpAndSettle();
+    await tester.tap(signOut);
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'Sign out'));
     await tester.pumpAndSettle();

@@ -13,6 +13,7 @@ abstract final class AppRoutes {
   static const String schedule = '/schedule';
   static const String progress = '/progress';
   static const String profile = '/profile';
+  static const String editProfile = '/profile/edit';
 
   static const String routineDetail = '/routine/detail';
   static const String routineEdit = '/routine/edit';

@@ -42,6 +42,20 @@ abstract final class Validators {
     return null;
   }
 
+  /// Display name: required, trimmed, and bounded to a sensible length.
+  static String? displayName(String? value, {String field = 'Display name'}) {
+    final String? missing = required(value, field: field);
+    if (missing != null) return missing;
+    final String name = value!.trim();
+    if (name.length < 2) {
+      return '$field must be at least 2 characters.';
+    }
+    if (name.length > 50) {
+      return '$field must be 50 characters or fewer.';
+    }
+    return null;
+  }
+
   static String? number(
     String? value, {
     String field = 'Value',

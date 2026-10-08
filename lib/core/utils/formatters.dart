@@ -37,4 +37,11 @@ abstract final class AppFormatters {
     }
     return '${kilograms.toStringAsFixed(1)} kg';
   }
+
+  static String height(double centimetres) {
+    if (centimetres == centimetres.roundToDouble()) {
+      return '${centimetres.round()} cm';
+    }
+    return '${centimetres.toStringAsFixed(1)} cm';
+  }
 }

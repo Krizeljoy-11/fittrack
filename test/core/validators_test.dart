@@ -74,6 +74,31 @@ void main() {
     });
   });
 
+  group('Validators.displayName', () {
+    test('requires a value', () {
+      expect(Validators.displayName(null), 'Display name is required.');
+      expect(Validators.displayName(''), 'Display name is required.');
+      expect(Validators.displayName('   '), 'Display name is required.');
+    });
+
+    test('enforces a sensible length range', () {
+      expect(
+        Validators.displayName('A'),
+        'Display name must be at least 2 characters.',
+      );
+      expect(
+        Validators.displayName('x' * 51),
+        'Display name must be 50 characters or fewer.',
+      );
+    });
+
+    test('accepts a trimmed name', () {
+      expect(Validators.displayName('Ada Lifts'), isNull);
+      expect(Validators.displayName('  Ada  '), isNull);
+      expect(Validators.displayName('Aa'), isNull);
+    });
+  });
+
   group('Validators.number', () {
     test('allows empty input by default', () {
       expect(Validators.number(null), isNull);
