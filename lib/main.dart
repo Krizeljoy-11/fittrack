@@ -1,0 +1,80 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import 'core/constants/app_routes.dart';
+import 'core/theme/app_theme.dart';
+import 'core/utils/firebase_bootstrap.dart';
+import 'providers/auth_provider.dart';
+import 'screens/auth/auth_gate.dart';
+import 'screens/auth/forgot_password_screen.dart';
+import 'screens/auth/login_screen.dart';
+import 'screens/auth/register_screen.dart';
+import 'screens/shell/main_shell.dart';
+import 'services/auth_service.dart';
+import 'services/notification_service.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await FirebaseBootstrap.init();
+  await NotificationService().initialize();
+  runApp(const MyApp());
+}
+
+/// Named-route table.
+///
+/// Every screen reachable through `Navigator.pushNamed` is registered here.
+/// The five tab routes open [MainShell] on the matching tab; anything unknown
+/// falls back to [AuthGate] so navigation can never dead-end.
+final Map<String, WidgetBuilder> _routes = <String, WidgetBuilder>{
+  AppRoutes.authGate: (_) => const AuthGate(),
+  AppRoutes.login: (_) => const LoginScreen(),
+  AppRoutes.register: (_) => const RegisterScreen(),
+  AppRoutes.forgotPassword: (_) => const ForgotPasswordScreen(),
+  AppRoutes.main: (_) => const MainShell(),
+  AppRoutes.home: (_) => const MainShell(initialIndex: 0),
+  AppRoutes.workout: (_) => const MainShell(initialIndex: 1),
+  AppRoutes.schedule: (_) => const MainShell(initialIndex: 2),
+  AppRoutes.progress: (_) => const MainShell(initialIndex: 3),
+  AppRoutes.profile: (_) => const MainShell(initialIndex: 4),
+};
+
+Route<dynamic> _onGenerateRoute(RouteSettings settings) {
+  final WidgetBuilder? builder = _routes[settings.name];
+  if (builder == null) {
+    debugPrint('AppRouter: no route for "${settings.name}", using AuthGate.');
+  }
+  return MaterialPageRoute<dynamic>(
+    settings: settings,
+    builder: builder ?? (_) => const AuthGate(),
+  );
+}
+
+/// FitTrack root widget.
+///
+/// Owns the provider wiring so both `main()` and widget tests can pump it
+/// without extra setup. [authService] exists so widget tests can drive the
+/// auth flow with a fake instead of a real Firebase project.
+class MyApp extends StatelessWidget {
+  const MyApp({super.key, this.authService});
+
+  final AuthService? authService;
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<AuthProvider>(
+          create: (_) => AuthProvider(service: authService),
+        ),
+        Provider<NotificationService>(create: (_) => NotificationService()),
+      ],
+      child: MaterialApp(
+        title: 'FitTrack',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light,
+        initialRoute: AppRoutes.authGate,
+        onGenerateRoute: _onGenerateRoute,
+      ),
+    );
+  }
+}
